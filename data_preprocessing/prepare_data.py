@@ -32,9 +32,7 @@ class PrepareData():
 
         x=np.vstack(x)
         y=np.vstack(y)
-        print(x.shape)
-        print(y.shape)
-        return 0
+        return x,y
 
     def slide_it(self,x):   
 
@@ -53,13 +51,5 @@ class PrepareData():
 
     #     torch.tensor(se)
 
-
-
-
-g={
-    "data":"/mnt/6A8CB2D58CB29AD1/Project_live_trading/data/ADANIGREEN_minute.csv"
-}
-obj=PrepareData(g,3,4)
-obj.get_data()
 
 
