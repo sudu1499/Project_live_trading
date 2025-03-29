@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 import torch 
-import tensorflow as tf
-import datetime
+# import tensorflow as tf
+from torch.utils.data import DataLoader,Dataset,random_split
 
 class PrepareData():
 
@@ -12,6 +12,7 @@ class PrepareData():
         self.window=window
         data_path=config['data']
         self.raw_data=pd.read_csv(data_path)
+        self.x,self.y=[],[]
 
     def get_data(self):
 
@@ -21,14 +22,14 @@ class PrepareData():
         gp=self.raw_data.groupby("date").groups
 
         
-        self.x,self.y=[],[]
+        
         for i in gp:
             indx=gp[i].to_list()
             temp=self.raw_data.iloc[indx[0]:indx[-1]:self.time_window]
             temp=self.slide_it(temp)
-            self.x.append(temp[0])
-            self.y.append(temp[1])
-
+            if len(temp[0])!=0:
+                self.x.append(temp[0])
+                self.y.append(temp[1])
 
         self.x=np.vstack(self.x)
         self.y=np.vstack(self.y)
@@ -46,9 +47,15 @@ class PrepareData():
         temp_y=temp_y.reshape(-1,1)
         return temp_x,temp_y
     
-    def get_torch_data(self):
+    def get_torch_data(self,batch_size):
+        
+        self.get_data()
+        dataset=MyDatset(self.x,self.y)
+        train_dataset,test_dataset=random_split(dataset,[.8,.2])
+        train_dataloader=DataLoader(train_dataset,batch_size)   
+        test_dataloader=DataLoader(test_dataset,batch_size)   
 
-        return torch.tensor(self.x,dtype=torch.float32,requires_grad=True),torch.tensor(self.y,dtype=torch.float32,requires_grad=True)
+        return train_dataloader,test_dataloader
     
     def get_numpy_data(self):
 
@@ -56,3 +63,17 @@ class PrepareData():
 
 
 
+        
+
+class MyDatset(Dataset):
+    def __init__(self,x,y):
+
+        self.x=torch.tensor(x,dtype=torch.float32,requires_grad=True)
+        self.y=torch.tensor(y,dtype=torch.float32,requires_grad=True)
+            
+    def __len__(self):
+
+        return len(self.x)
+
+    def __getitem__(self, index):
+        return self.x[index],self.y[index]    
