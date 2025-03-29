@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
-# import torch 
-# import tensorflow as tf
+import torch 
+import tensorflow as tf
 import datetime
 
 class PrepareData():
@@ -21,18 +21,17 @@ class PrepareData():
         gp=self.raw_data.groupby("date").groups
 
         
-        x,y=[],[]
+        self.x,self.y=[],[]
         for i in gp:
             indx=gp[i].to_list()
             temp=self.raw_data.iloc[indx[0]:indx[-1]:self.time_window]
             temp=self.slide_it(temp)
-            x.append(temp[0])
-            y.append(temp[1])
+            self.x.append(temp[0])
+            self.y.append(temp[1])
 
 
-        x=np.vstack(x)
-        y=np.vstack(y)
-        return x,y
+        self.x=np.vstack(self.x)
+        self.y=np.vstack(self.y)
 
     def slide_it(self,x):   
 
@@ -47,9 +46,13 @@ class PrepareData():
         temp_y=temp_y.reshape(-1,1)
         return temp_x,temp_y
     
-    # def get_data_torch(self):
+    def get_torch_data(self):
 
-    #     torch.tensor(se)
+        return torch.tensor(self.x,dtype=torch.float32,requires_grad=True),torch.tensor(self.y,dtype=torch.float32,requires_grad=True)
+    
+    def get_numpy_data(self):
+
+        return self.x,self.y
 
 
 
